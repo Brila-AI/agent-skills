@@ -1,0 +1,6 @@
+.DS_Store
+*.skill
+__pycache__/
+*.pyc
+/tmp/
+evals/
