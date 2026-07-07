@@ -1,0 +1,15 @@
+{
+  "name": "brila",
+  "description": "Brila agent skills",
+  "owner": {
+    "name": "Brila",
+    "url": "https://github.com/brila-ai/agent-skills"
+  },
+  "plugins": [
+    {
+      "name": "brila",
+      "source": "./",
+      "description": "Brila public-API skills & commands: generate a published website from a Google Maps listing (live URL + Markdown), edit a site's sections, and build embeddable widgets."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "brila",
+  "version": "0.1.0",
+  "description": "Brila public-API skills: generate a published website from a Google Maps listing (live URL + Markdown), edit a site's sections, upload images, and build embeddable widgets.",
+  "author": {
+    "name": "Brila",
+    "url": "https://brila.ai"
+  },
+  "homepage": "https://developers.brila.ai/#tag/agent-skills",
+  "repository": "https://github.com/brila-ai/agent-skills",
+  "license": "Apache-2.0",
+  "keywords": ["brila", "website", "generation", "google-maps"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Brila",
+    "shortDescription": "Generate & manage published websites from Google Maps listings",
+    "longDescription": "Skills from the makers of Brila, the AI-native website builder. Generate a published site from a Google Maps listing (live URL + Markdown), edit its sections, upload images, and build embeddable reviews widgets — via the Brila public API.",
+    "developerName": "Generated Media LLC",
+    "category": "Productivity",
+    "websiteURL": "https://brila.ai",
+    "defaultPrompt": [
+      "Generate a Brila site from this Google Maps link and give me the live URL + Markdown.",
+      "Build a reviews widget from my Brila site for my Shopify store."
+    ]
+  }
+}

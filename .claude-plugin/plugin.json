@@ -1,0 +1,12 @@
+{
+  "name": "brila",
+  "description": "Brila public-API skills & commands: generate a published website from a Google Maps listing (live URL + Markdown), edit a site's sections, and build embeddable widgets.",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Brila"
+  },
+  "homepage": "https://developers.brila.ai/#tag/agent-skills",
+  "repository": "https://github.com/brila-ai/agent-skills",
+  "keywords": ["brila", "website", "generation", "google-maps"]
+}
