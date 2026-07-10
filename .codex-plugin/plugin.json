@@ -1,6 +1,6 @@
 {
   "name": "brila",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Brila public-API skills: generate a published website from a Google Maps listing (live URL + Markdown), edit and manage a site (sections, images, custom domains, delete), and build embeddable reviews widgets.",
   "author": {
     "name": "Brila",

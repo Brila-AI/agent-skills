@@ -32,13 +32,28 @@ def safe_json(text):
         return text
 
 
+def _plugin_version(default="0.0.0"):
+    # Read the version from the plugin manifest so the User-Agent tracks releases automatically
+    # instead of drifting out of a hardcoded string. Script lives at
+    # skills/brila-generate-site/scripts/, so the manifest is three levels up.
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".claude-plugin", "plugin.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f).get("version") or default
+    except (OSError, ValueError):
+        return default
+
+
+USER_AGENT = f"brila-agent/{_plugin_version()}"
+
+
 def api_request(method, url, api_key, body=None):
     # -w appends "\n<http_code>" after the body so we can split status from payload.
     cmd = [
         "curl", "-sS", "--max-time", "60", "-X", method, url,
         "-H", f"Api-Key: {api_key}",
         "-H", "Accept: application/json",
-        "-H", "User-Agent: brila-agent/0.1.0",
+        "-H", f"User-Agent: {USER_AGENT}",
         # Skip the ngrok-free interstitial when testing through a tunnel; harmless otherwise.
         "-H", "ngrok-skip-browser-warning: true",
         "-w", "\n%{http_code}",
