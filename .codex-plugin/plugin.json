@@ -1,7 +1,7 @@
 {
   "name": "brila",
-  "version": "0.1.0",
-  "description": "Brila public-API skills: generate a published website from a Google Maps listing (live URL + Markdown), edit a site's sections, upload images, and build embeddable widgets.",
+  "version": "0.2.0",
+  "description": "Brila public-API skills: generate a published website from a Google Maps listing (live URL + Markdown), edit and manage a site (sections, images, custom domains, delete), and build embeddable reviews widgets.",
   "author": {
     "name": "Brila",
     "url": "https://brila.ai"
@@ -14,7 +14,7 @@
   "interface": {
     "displayName": "Brila",
     "shortDescription": "Generate & manage published websites from Google Maps listings",
-    "longDescription": "Skills from the makers of Brila, the AI-native website builder. Generate a published site from a Google Maps listing (live URL + Markdown), edit its sections, upload images, and build embeddable reviews widgets — via the Brila public API.",
+    "longDescription": "Skills from the makers of Brila, the AI-native website builder. Generate a published site from a Google Maps listing (live URL + Markdown), edit its sections, upload images, attach a custom domain, list/delete sites, and build embeddable reviews widgets — via the Brila public API.",
     "developerName": "Generated Media LLC",
     "category": "Productivity",
     "websiteURL": "https://brila.ai",

@@ -1,6 +1,6 @@
 ---
 name: brila-generate-site
-description: Generate, edit, and build embeddable widgets from published websites for real local businesses via the Brila public API. Generate a brand-new site from a Google Maps listing (maps.app.goo.gl/…) and return the live URL plus Markdown; edit a generated site's sections (headlines, descriptions, text) and re-publish; or build an embeddable widget from a site's content (most often a reviews widget for Shopify/Webflow/WordPress). Use when someone wants to create/build/"make" a site or landing page for a business (restaurant, cafe, shop, clinic, salon, etc.), shares a Maps link, or says "turn this place into a site"; or wants to change/edit a Brila site's wording (e.g. "change the hero headline"); or wants an embeddable reviews widget (e.g. "make a reviews widget for Shopify"). Trigger even without the word "Brila", and with no link yet (just ask). Do NOT use it for hand-coding/designing a site yourself, deploying an existing site, plain Markdown conversion, or scraping data from a Maps link.
+description: Use this to build or change a website for a real local business — restaurants, cafes, taco spots, roasteries, salons, barbers, shops, clinics, and the like — via Brila. Trigger on any request to make, build, spin up, set up, or "turn this place into" a site or landing page, and treat a shared Google Maps link (maps.app.goo.gl/…) as a strong go signal even without the words "website" or "Brila." No link yet? Still trigger and ask for it. Also use to edit an existing Brila site's text or images (hero headline, about section, hours, gallery photo), list or delete sites, take one down, or connect a custom domain. Do NOT use for embeddable reviews/testimonials widgets (that's the brila-widget skill), hand-coding or deploying a site yourself, Markdown conversion, or scraping a Maps link.
 ---
 
 # Brila — generate a site & return link + Markdown
@@ -11,9 +11,10 @@ the **site content as Markdown**. Generation is AI-driven and runs server-side; 
 skill just orchestrates create → poll → export over plain HTTPS.
 
 Generating a site is the **main flow** and lives below. Editing a site's sections,
-uploading images, building an embeddable widget, exporting other formats, and the full
-error table live in **[REFERENCE.md](REFERENCE.md)** — read that file when the user
-asks for one of those.
+uploading images, listing/deleting sites, attaching a custom domain, exporting other
+formats, and the full error table live in **[REFERENCE.md](REFERENCE.md)** — read that
+file when the user asks for one of those. (Building an embeddable reviews widget from a
+site is a separate skill, `brila-widget`.)
 
 ## What you need before running
 
@@ -106,14 +107,15 @@ rather than dumping raw JSON. The common generation failures:
 - `409 GENERATION_IN_PROGRESS` — already generating; resume the returned `id` instead of re-creating.
 - `NOT_READY` (`failed` / timeout) — failed server-side, or didn't finish within `--timeout`; retry or resume the `id`.
 
-The **full error table** (including editing/upload/widget errors) is in [REFERENCE.md](REFERENCE.md).
+The **full error table** (including editing/upload/domain errors) is in [REFERENCE.md](REFERENCE.md).
 
 ## Beyond generation
 
-Editing sections, uploading images, building a reviews widget, and exporting HTML/JSON are all
-covered in **[REFERENCE.md](REFERENCE.md)** — read it when the user asks for one of those. Those
-calls are plain request→response and go **directly through curl** (auth: `Api-Key: $BRILA_API_KEY`);
-only generation uses the script.
+Listing your sites, editing sections, uploading images, attaching a custom domain, deleting a
+site, and exporting HTML/JSON are all covered in **[REFERENCE.md](REFERENCE.md)** — read it when
+the user asks for one of those. Those calls are plain request→response and go **directly through
+curl** (auth: `Api-Key: $BRILA_API_KEY`); only generation uses the script. (Building an embeddable
+reviews widget from a site is a separate skill, `brila-widget`.)
 
 ## Notes
 
