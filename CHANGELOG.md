@@ -4,6 +4,11 @@ All notable changes to the **brila** plugin are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com); versioning: [SemVer](https://semver.org).
 The plugin version lives in `.claude-plugin/plugin.json`.
 
+## [0.2.1] — 2026-07-10
+
+### Fixed
+- The bundled `brila_generate.py` now derives its `User-Agent` (`brila-agent/<version>`) from the plugin version in `.claude-plugin/plugin.json` instead of a hardcoded `brila-agent/0.1.0`, so it tracks releases automatically.
+
 ## [0.2.0] — 2026-07-10
 
 ### Added
