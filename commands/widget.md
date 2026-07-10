@@ -4,9 +4,10 @@ argument-hint: "[site id or live URL]"
 ---
 
 The user wants an embeddable widget (most often a **reviews widget** for Shopify/Webflow/WordPress)
-built from a Brila site. Use the **brila-generate-site** skill's widget flow.
+built from a Brila site. Use the **brila-widget** skill.
 
-Site — id or live URL (may be empty — if so, ask which generated site): $ARGUMENTS
+Site — id or live URL (may be empty — if so, ask which generated site, or list their sites with
+`GET /api/public/v1/sites` and match by name/URL): $ARGUMENTS
 
 Steps:
 1. Fetch the site's reviews directly:
@@ -20,6 +21,6 @@ Steps:
    reviews under the business (`LocalBusiness`/`Review`, with `reviewRating`/`aggregateRating` **only if
    the source has real ratings**). Add it **only when the destination store is the same business** as the
    Brila site; skip it on unrelated third-party sites. Match the visible reviews; never invent data. See
-   the widget section in `REFERENCE.md` for the exact shape and rules.
+   the **brila-widget** skill (`SKILL.md`) for the exact shape and rules.
 5. Give paste instructions for the platform (Shopify: Customize → Custom Liquid). The snippet carries
    no API key and makes no calls — safe to embed anywhere; rebuild to refresh the reviews.

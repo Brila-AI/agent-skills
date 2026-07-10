@@ -6,7 +6,8 @@
 [Brila](https://brila.ai), the AI-native website builder. They drive the
 [Brila public API](https://developers.brila.ai)
 end-to-end: give a Google Maps link and get back a **live website** + its content as **Markdown**,
-edit a site's sections, or build an embeddable widget — all over plain HTTPS. Runs in Claude Code,
+edit and manage a site (sections, images, custom domains), or build an embeddable reviews widget —
+all over plain HTTPS. Runs in Claude Code,
 OpenAI Codex, or any agent (see [Install](#install)). Skills follow the
 [Agent Skills](https://agentskills.io/) open standard.
 
@@ -41,6 +42,7 @@ skill, not the plugin/marketplace):
 
 ```
 npx skills add brila-ai/agent-skills --skill brila-generate-site -a claude-code
+# add --skill brila-widget for the reviews-widget skill
 # -a codex to target Codex instead; add -g for a global install
 ```
 
@@ -68,8 +70,12 @@ intent):
 - **`/brila:widget <site id or live URL>`** — build a self-contained, embeddable **reviews widget** from
   a generated site's content, styled to match the store it will live on (Shopify / WordPress / Webflow).
 
-Both need an active subscription and your API key. Section editing and image uploads work by asking in
-plain language ("change the hero headline") — the skill calls the API directly.
+Both need an active subscription and your API key. Section editing, image uploads, custom domains, and
+listing/deleting sites all work by asking in plain language ("change the hero headline", "point
+example.com at my site") — the skill calls the API directly.
+
+Under the hood the plugin ships **two skills**: `brila-generate-site` (generate + edit + manage a
+site) and `brila-widget` (build the embeddable reviews widget). You don't pick — they trigger on intent.
 
 ## Configuration
 
