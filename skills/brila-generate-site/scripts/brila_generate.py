@@ -82,7 +82,11 @@ def error_type(body):
 
 def main():
     parser = argparse.ArgumentParser(description="Generate a Brila site and export Markdown.")
-    parser.add_argument("maps_url", nargs="?", help="Google Maps short link: https://maps.app.goo.gl/...")
+    parser.add_argument(
+        "business_url",
+        nargs="?",
+        help="Google Maps or Yelp business URL (https://maps.app.goo.gl/... or https://www.yelp.com/biz/...)",
+    )
     # Resume an existing generation (poll + export) instead of creating a new one — use the id from a
     # previous "created" line if a run was interrupted, so you don't start a duplicate paid generation.
     parser.add_argument("--resume", metavar="GENERATION_ID", default=None)
@@ -105,9 +109,9 @@ def main():
     if args.resume:
         gen_id = args.resume
         emit({"event": "resumed", "id": gen_id})
-    elif args.maps_url:
+    elif args.business_url:
         status, body = api_request("POST", f"{base}/generations", api_key,
-                                   {"source_url": args.maps_url})
+                                   {"source_url": args.business_url})
         if status != 202:
             emit({"error": "CREATE_FAILED", "http_status": status,
                   "type": error_type(body), "body": safe_json(body)})
@@ -117,7 +121,7 @@ def main():
         emit({"event": "created", "id": gen_id, "status": created.get("status", "queue")})
     else:
         emit({"error": "MISSING_INPUT",
-              "message": "Provide a Google Maps URL, or --resume <generation_id> to continue an existing job."})
+              "message": "Provide a Google Maps or Yelp business URL, or --resume <generation_id> to continue an existing job."})
         return 2
 
     # 2. Poll the generation until ready/failed or timeout.
