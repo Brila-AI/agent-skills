@@ -178,7 +178,7 @@ the API's JSON. Translate it for the user rather than dumping raw JSON.
 | `404 HTML_NOT_AVAILABLE` | HTML export isn't ready for this site | The HTML isn't available yet; try JSON/Markdown, or re-export shortly. |
 | `409 GENERATION_IN_PROGRESS` | Already generating this business | A generation for this business is already running; resume it instead of re-creating (its `details.site_id` names the site, when it's yours). |
 | `422 INSUFFICIENT_REVIEWS` | Business has too few Google reviews | This business doesn't have enough reviews yet to generate a quality site. |
-| `422 BUSINESS_INFO_NOT_FOUND` | Maps link didn't resolve | Double-check the Google Maps link points to a real business listing. |
+| `422 BUSINESS_INFO_NOT_FOUND` | Listing link didn't resolve | Double-check the Google Maps or Yelp link points to a real business listing. |
 | `422 SITE_SECTION_INVALID_DATA` | Edit failed schema validation | Read the `fields` array (which field broke which rule), fix the data, and retry. |
 | `422 SITE_SECTION_INVALID_URL` | Image field not a Brila URL | Upload the image first and use the returned `asset.url`. |
 | `422 INVALID_FORMAT` | Bad export `format` | Use `format=html`, `json`, or `md`. |

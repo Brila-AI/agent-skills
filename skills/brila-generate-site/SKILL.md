@@ -1,6 +1,6 @@
 ---
 name: brila-generate-site
-description: Use this to build or change a website for a real local business — restaurants, cafes, taco spots, roasteries, salons, barbers, shops, clinics, and the like — via Brila. Trigger on any request to make, build, spin up, set up, or "turn this place into" a site or landing page, and treat a shared Google Maps link (maps.app.goo.gl/…) as a strong go signal even without the words "website" or "Brila." No link yet? Still trigger and ask for it. Also use to edit an existing Brila site's text or images (hero headline, about section, hours, gallery photo), list or delete sites, take one down, or connect a custom domain. Do NOT use for embeddable reviews/testimonials widgets (that's the brila-widget skill), hand-coding or deploying a site yourself, Markdown conversion, or scraping a Maps link.
+description: Use this to build or change a website for a real local business — restaurants, cafes, taco spots, roasteries, salons, barbers, shops, clinics, and the like — via Brila. Trigger on any request to make, build, spin up, set up, or "turn this place into" a site or landing page, and treat a shared Google Maps or Yelp business link (maps.app.goo.gl/… or yelp.com/biz/…) as a strong go signal even without the words "website" or "Brila." No link yet? Still trigger and ask for it. Also use to edit an existing Brila site's text or images (hero headline, about section, hours, gallery photo), list or delete sites, take one down, or connect a custom domain. Do NOT use for embeddable reviews/testimonials widgets (that's the brila-widget skill), hand-coding or deploying a site yourself, Markdown conversion, or scraping a listing link.
 ---
 
 # Brila — generate a site & return link + Markdown
@@ -26,10 +26,11 @@ site is a separate skill, `brila-widget`.)
   **When no key is configured, ASK the user for it.** Never invent, guess, or auto-fill
   a key from your own account, the environment, `git config`, chat context, or memory;
   use only what the user explicitly provides. Never hardcode a key into files.
-- **A Google Maps short link** to the business: `https://maps.app.goo.gl/…`. This is the
-  *only* accepted input — the API resolves the business from it. If the user gives a
-  business name or address instead, ask them to paste the Google Maps share link (Maps
-  app → Share → Copy link); the API cannot generate from a name alone.
+- **A Google Maps or Yelp business URL**: a Maps short link `https://maps.app.goo.gl/…` **or** a
+  Yelp business page `https://www.yelp.com/biz/…`. This is the *only* accepted input — the API
+  resolves the business from it and detects the source automatically. If the user gives a business
+  name or address instead, ask them to paste the Maps share link (Maps app → Share → Copy link) or
+  the Yelp `/biz/` URL; it cannot generate from a name alone.
 
 The API base defaults to production `https://api.brila.ai`. Override with the
 `BRILA_API_BASE` env var only if asked.
@@ -42,7 +43,7 @@ reliably in one process (polling until `ready`/`failed`, then exporting Markdown
 call `POST /v1/generations` or poll `GET /v1/generations/{id}` yourself with curl — run:
 
 ```bash
-python3 scripts/brila_generate.py "<google_maps_url>"
+python3 scripts/brila_generate.py "<business_url>"
 ```
 
 Call the interpreter as `python3`, falling back to `python` (or `py -3` on Windows) if
@@ -103,7 +104,7 @@ rather than dumping raw JSON. The common generation failures:
 - `403 SUBSCRIPTION_REQUIRED` — the public API is a subscriber feature; an active Brila subscription is required.
 - `403 SITE_LIMIT_REACHED` — all site slots on the plan are used for this period; free a slot or upgrade.
 - `422 INSUFFICIENT_REVIEWS` — the business has too few Google reviews to generate a quality site.
-- `422 BUSINESS_INFO_NOT_FOUND` — the Maps link didn't resolve; check it points to a real listing.
+- `422 BUSINESS_INFO_NOT_FOUND` — the Maps/Yelp link didn't resolve; check it points to a real listing.
 - `409 GENERATION_IN_PROGRESS` — already generating; resume the returned `id` instead of re-creating.
 - `NOT_READY` (`failed` / timeout) — failed server-side, or didn't finish within `--timeout`; retry or resume the `id`.
 

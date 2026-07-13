@@ -5,7 +5,7 @@
 **Brila's official agent skills** — a growing set of skills and slash commands from the makers of
 [Brila](https://brila.ai), the AI-native website builder. They drive the
 [Brila public API](https://developers.brila.ai)
-end-to-end: give a Google Maps link and get back a **live website** + its content as **Markdown**,
+end-to-end: give a Google Maps or Yelp business link and get back a **live website** + its content as **Markdown**,
 edit and manage a site (sections, images, custom domains), or build an embeddable reviews widget —
 all over plain HTTPS. Runs in Claude Code,
 OpenAI Codex, or any agent (see [Install](#install)). Skills follow the
@@ -65,8 +65,8 @@ and passes it via `--api-key`.
 The plugin adds two slash commands (you can also just ask in plain language — the skill triggers on
 intent):
 
-- **`/brila:generate-site <google-maps-link>`** — generate a site from a Google Maps listing, poll until
-  it's `ready`, and return the live URL + content as Markdown. (Omit the link and it'll ask.)
+- **`/brila:generate-site <google-maps-or-yelp-url>`** — generate a site from a Google Maps or Yelp
+  business listing, poll until it's `ready`, and return the live URL + content as Markdown. (Omit the link and it'll ask.)
 - **`/brila:widget <site id or live URL>`** — build a self-contained, embeddable **reviews widget** from
   a generated site's content, styled to match the store it will live on (Shopify / WordPress / Webflow).
 

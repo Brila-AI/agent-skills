@@ -4,6 +4,11 @@ All notable changes to the **brila** plugin are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com); versioning: [SemVer](https://semver.org).
 The plugin version lives in `.claude-plugin/plugin.json`.
 
+## [0.2.2] — 2026-07-13
+
+### Added
+- **Yelp business URLs** — `/brila:generate-site` and the bundled `brila_generate.py` now accept a Yelp business page (`https://www.yelp.com/biz/…`) in addition to a Google Maps link; the API detects the source from the URL. The script's positional argument is renamed `maps_url` → `business_url` (positional, so existing calls are unaffected).
+
 ## [0.2.1] — 2026-07-10
 
 ### Fixed

@@ -9,7 +9,7 @@
     {
       "name": "brila",
       "source": "./",
-      "description": "Brila public-API skills & commands: generate a published website from a Google Maps listing (live URL + Markdown), edit and manage a site (sections, images, custom domains, delete), and build embeddable reviews widgets."
+      "description": "Brila public-API skills & commands: generate a published website from a Google Maps or Yelp listing (live URL + Markdown), edit and manage a site (sections, images, custom domains, delete), and build embeddable reviews widgets."
     }
   ]
 }
