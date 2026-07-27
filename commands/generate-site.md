@@ -13,10 +13,15 @@ name/address): $ARGUMENTS
 the tool call), e.g. "⏳ Kicking off your Brila site — usually ~30s to a couple of minutes. Hang tight!"
 Never generate silently.
 
-Then **always run generation via the bundled script** — `python3 scripts/brila_generate.py "<business_url>"`
-(fall back to `python`, or `py -3` on Windows, if `python3` isn't on PATH) — never hand-roll
-create/poll/export with curl. It reads `BRILA_API_KEY`; if there's no key, ask the user for their Brila
-API key — don't guess or auto-fill one. Let it poll create → ready → export to completion, then hand
-back the **live published URL** and the **site content as Markdown**.
+Then generate, preferring the MCP path when available:
+- **If Brila MCP tools are available** (this plugin ships the Brila MCP server), call the
+  **`generate_site`** tool with the URL — it returns a `generation_id`; then poll `get_generation`
+  until `ready` (show the user the returned `stage` between polls) and call `get_site` / `export_site`.
+  The server handles auth — no API key for you to manage.
+- **Otherwise**, run the bundled script — `python3 scripts/brila_generate.py "<business_url>"` (fall
+  back to `python`, or `py -3` on Windows) — never hand-roll create/poll/export with curl. It reads
+  `BRILA_API_KEY`; if there's no key, ask the user for their Brila API key — don't guess or auto-fill one.
+
+Either way, hand back the **live published URL** and the **site content as Markdown**.
 
 Markdown is the default — also mention the site is available as **HTML** (or JSON) if they want it.

@@ -4,6 +4,23 @@ All notable changes to the **brila** plugin are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com); versioning: [SemVer](https://semver.org).
 The plugin version lives in `.claude-plugin/plugin.json`.
 
+## [0.3.0] — 2026-07-27
+
+Adds the **Brila MCP server** as the primary way the skills reach the API. The Claude Code plugin now **bundles** the remote MCP server (`https://mcp.brila.ai/mcp`), so installing the plugin registers it and the skills call MCP tools while the server owns the orchestration. The bundled Python script + API key stay as a fallback when no MCP server is connected.
+
+### Added
+- **Bundled Brila MCP server** — `.claude-plugin/plugin.json` declares the remote server under `mcpServers`, so Claude Code registers it on install (approve / OAuth-authenticate on first use). Requires a recent Claude Code that supports plugin-bundled MCP servers.
+- **MCP path for the skills** — when the MCP tools are available, generation runs through `generate_site` (returns a `generation_id`; poll `get_generation` until `ready`, then `get_site` / `export_site`), and editing / uploads / domains / lifecycle / account use their matching tools.
+- **Product-workflow tools** — `connect_domain` (attach + poll a custom domain to live), `set_section_image` (upload + set on a section in one call), `analyze_reviews` (schema.org rating + review highlights).
+- **Account & billing tools** — `account_info` reports the plan + remaining site budget and, while on the free plan, lists the purchasable plans (so the agent knows the limits); `create_subscription_checkout` starts a subscription purchase and returns a payment link — it works without an active subscription, so the agent can get the user subscribed from the flow.
+- **OAuth sign-in over MCP** — no key to paste; the MCP server also accepts a Brila API key.
+
+### Changed
+- **Skills prefer the MCP tools when connected**, falling back to the bundled `brila_generate.py` + API key otherwise. `SKILL.md` / `REFERENCE.md` / commands / `brila-widget` now document both paths.
+
+### Notes
+- **OpenAI Codex** doesn't auto-bundle an MCP server from the plugin manifest — Codex users add the `brila` server to their `config.toml`, or keep using the bundled script.
+
 ## [0.2.2] — 2026-07-13
 
 ### Added
