@@ -26,6 +26,11 @@ OpenAI Codex, or any agent (see [Install](#install)). Skills follow the
 /plugin install brila@brila
 ```
 
+The plugin **bundles the Brila MCP server** (`https://mcp.brila.ai/mcp`), so Claude Code registers it
+on install — approve it (and sign in with OAuth) on first use via `/mcp`. The skills then run over
+the MCP tools; without it they fall back to the bundled Python script + an API key. Requires a recent
+Claude Code that supports plugin-bundled MCP servers.
+
 ### OpenAI Codex
 
 ```
@@ -33,7 +38,9 @@ codex plugin marketplace add brila-ai/agent-skills
 ```
 
 Then install **brila** from the plugin browser (`/plugins`, or the Plugins section in the Codex app).
-On Codex the skill triggers by intent — just ask (slash commands are Claude Code-only).
+On Codex the skill triggers by intent — just ask (slash commands are Claude Code-only). Codex doesn't
+auto-bundle the MCP server; to use it, add `brila` (`https://mcp.brila.ai/mcp`) to your `config.toml`,
+or just use the bundled script with an API key.
 
 ### Any agent via npx
 
@@ -50,9 +57,13 @@ npx skills add brila-ai/agent-skills --skill brila-generate-site -a claude-code
 
 > "Generate a Brila site for https://maps.app.goo.gl/…"
 
-An [**active Brila subscription**](https://brila.ai/pricing) is required. Authenticate with your
-**API key**: set `BRILA_API_KEY=sk_…`, or just **paste the key into the chat** — the skill picks it up
-and passes it via `--api-key`.
+With the bundled **MCP server** (the default install above), the first run signs you in via **OAuth**
+in the browser — nothing to configure. On the **script fallback** (no MCP), authenticate with a
+**Brila API key**: set `BRILA_API_KEY=sk_…`, or just **paste the key into the chat** — the skill picks
+it up and passes it via `--api-key`.
+
+Generating a site needs an [**active Brila subscription**](https://brila.ai/pricing) — over MCP the
+skill can start a checkout and hand you a payment link if you don't have one yet.
 
 ## Requirements
 

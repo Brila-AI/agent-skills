@@ -5,8 +5,23 @@ site, upload an image, list or delete sites, attach a custom domain, export anot
 or when you need to translate a less-common API error. (Building an embeddable reviews
 widget from a site is a separate skill, `brila-widget`.)
 
-**All calls here are plain request→response — use `curl` directly (no script).** Auth is the
-`Api-Key: $BRILA_API_KEY` header; base URL `$BRILA_API_BASE` (default `https://api.brila.ai`).
+**Two paths, same operations.** Each operation below has an **MCP tool** (preferred — use it when
+the Brila MCP server is connected; this plugin ships it) and a **curl** equivalent (the fallback;
+auth via the `Api-Key: $BRILA_API_KEY` header, base `$BRILA_API_BASE`, default `https://api.brila.ai`).
+
+| Operation | MCP tool | curl |
+|---|---|---|
+| Account / budget | `account_info` | `GET /v1/user/info` |
+| Start a subscription purchase | `create_subscription_checkout` | — (MCP only; returns a payment link) |
+| List / get site | `list_sites` / `get_site` | `GET /v1/sites` / `GET /v1/sites/{id}` |
+| Delete a site | `delete_site` | `DELETE /v1/sites/{id}` |
+| List / read / edit section | `list_sections` / `get_section` / `update_section` | `GET`/`GET`/`PUT /v1/sites/{id}/sections[/{name}]` |
+| Set a section image (upload + set) | `set_section_image` | `POST /v1/uploads` → `PUT …/sections/{name}` |
+| Upload / list / delete image | `upload_image` / `list_uploads` / `delete_upload` | `POST`/`GET`/`DELETE /v1/uploads[/{id}]` |
+| Export (md/html/json) | `export_site` | `GET /v1/sites/{id}/export?format=` |
+| Attach / remove / verify domain | `add_domain` / `remove_domain` / `verify_domain` | `POST`/`DELETE`/`POST /v1/sites/{id}/domain[/verify]` |
+| Connect a domain (attach + poll to live) | `connect_domain` | attach then verify (above) |
+| Reviews summary (rating + highlights) | `analyze_reviews` | read the `advantages` section |
 
 **The full contract is the source of truth — fetch it when you need an endpoint, param, or
 field not spelled out here:**
@@ -16,7 +31,9 @@ curl -s "$BRILA_API_BASE/api/public/v1/swagger_doc"   # public — no API key ne
 ```
 
 That's the complete OpenAPI 2.0 spec (machine-readable JSON; human-readable docs live at
-[developers.brila.ai](https://developers.brila.ai)). Read the spec for anything not below.
+[developers.brila.ai](https://developers.brila.ai)). Read the spec for anything not below. The curl
+snippets in each section are the **fallback**; when the MCP tool from the table above is available,
+call it instead (same ids/params, same data).
 
 ## Account & creation budget
 
@@ -170,7 +187,7 @@ the API's JSON. Translate it for the user rather than dumping raw JSON.
 | error / HTTP | Meaning | What to tell the user |
 |---|---|---|
 | `401 INVALID_API_KEY` | Bad/expired key | The API key is invalid — check it. |
-| `403 SUBSCRIPTION_REQUIRED` | No active subscription | The public API is a subscriber feature — an active Brila subscription is required. |
+| `403 SUBSCRIPTION_REQUIRED` | No active subscription | The public API is a subscriber feature — an active Brila subscription is required. Over MCP, call `create_subscription_checkout` and hand the user the payment link. |
 | `403 SITE_LIMIT_REACHED` | Plan site limit reached | You've used all site slots on your plan for this period (`details.max_sites`); free a slot or upgrade. |
 | `403 SECTION_READ_ONLY` | Section can't be edited | That section is read-only. |
 | `403 FORBIDDEN` | Not the owner, or the site is locked | This site can't be changed right now — it isn't yours, or it's locked. |

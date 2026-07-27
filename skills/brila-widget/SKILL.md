@@ -15,14 +15,18 @@ This skill assumes the site already exists.
 
 ## What you need before running
 
-- **A Brila API key** (an active subscription is required). Read `BRILA_API_KEY` from the env, or
-  pass it as the `Api-Key` header; the user can also paste it from their Brila account.
-
-  **When no key is configured, ASK the user for it.** Never invent, guess, or auto-fill a key from
-  your own account, the environment, `git config`, chat context, or memory; use only what the user
-  explicitly provides. Never hardcode a key into files.
+- **Access to Brila — two paths, prefer the first:**
+  - *MCP path:* if Brila MCP tools are available (this plugin ships the Brila MCP server) —
+    `list_sites`, `get_section`, `analyze_reviews` — use them. The client/server handles auth, no
+    API key for you to manage.
+  - *Script/curl path:* a **Brila API key** (an active subscription is required). Read
+    `BRILA_API_KEY` from the env, or pass it as the `Api-Key` header; the user can also paste it
+    from their Brila account. **When no key is configured, ASK the user for it.** Never invent,
+    guess, or auto-fill a key from your own account, the environment, `git config`, chat context, or
+    memory; use only what the user explicitly provides, and never hardcode a key into files.
 - **An existing Brila site** — you need its **site id**. If the user only gives the **live URL**
-  (e.g. `https://monte-verde.brila.ai`), find the id by listing their sites and matching the URL:
+  (e.g. `https://monte-verde.brila.ai`), find the id by listing their sites and matching the URL —
+  the `list_sites` MCP tool when available, else curl:
 
   ```bash
   curl -s "$BRILA_API_BASE/api/public/v1/sites" -H "Api-Key: $BRILA_API_KEY"
@@ -33,21 +37,27 @@ This skill assumes the site already exists.
   user for the id. If they have no site yet, point them at `brila-generate-site` to make one first.
 
 API base defaults to production `https://api.brila.ai`; override with `BRILA_API_BASE` only if asked.
-All calls are plain request→response — use `curl` directly with `Api-Key: $BRILA_API_KEY`.
+Prefer the MCP tools when connected; otherwise the calls here are plain request→response via `curl`
+with `Api-Key: $BRILA_API_KEY`.
 
 ## How to build the widget
 
 ### 1. Get the reviews from the site
 
-Reviews live in the **`advantages`** section. Fetch it directly and use the real review
-text/authors from its `data` (look at the items) — **never invent reviews**:
+Reviews live in the **`advantages`** section. Use the real review text/authors from its `data`
+(look at the items) — **never invent reviews**.
 
-```bash
-curl -s "$BRILA_API_BASE/api/public/v1/sites/$SITE_ID/sections/advantages" -H "Api-Key: $BRILA_API_KEY"
-```
+- **If Brila MCP tools are available:** read the section with `get_section` (name `advantages`), or
+  call `analyze_reviews` for a schema.org aggregate rating + review-derived highlights (handy for the
+  JSON-LD in step 4).
+- **Otherwise, curl directly:**
 
-For a different kind of widget, fetch the relevant section the same way
-(`GET /v1/sites/{id}/sections` lists the available section names).
+  ```bash
+  curl -s "$BRILA_API_BASE/api/public/v1/sites/$SITE_ID/sections/advantages" -H "Api-Key: $BRILA_API_KEY"
+  ```
+
+For a different kind of widget, fetch the relevant section the same way (`list_sections`, or
+`GET /v1/sites/{id}/sections`, lists the available section names).
 
 ### 2. Ask for the destination store and look at it
 

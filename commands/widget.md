@@ -6,13 +6,15 @@ argument-hint: "[site id or live URL]"
 The user wants an embeddable widget (most often a **reviews widget** for Shopify/Webflow/WordPress)
 built from a Brila site. Use the **brila-widget** skill.
 
-Site — id or live URL (may be empty — if so, ask which generated site, or list their sites with
-`GET /api/public/v1/sites` and match by name/URL): $ARGUMENTS
+Site — id or live URL (may be empty — if so, ask which generated site, or list their sites: the
+`list_sites` MCP tool when available, else `GET /api/public/v1/sites`, matched by name/URL): $ARGUMENTS
 
 Steps:
-1. Fetch the site's reviews directly:
-   `curl -s "$BRILA_API_BASE/api/public/v1/sites/<site_id>/sections/advantages" -H "Api-Key: $BRILA_API_KEY"`
-   and use the real review text/authors from its `data` (never invent reviews).
+1. Fetch the site's reviews and use the real review text/authors (never invent reviews):
+   - **If Brila MCP tools are available**, read them via `get_section` (section `advantages`), or use
+     `analyze_reviews` for a rating + highlights summary.
+   - **Otherwise**, curl directly:
+     `curl -s "$BRILA_API_BASE/api/public/v1/sites/<site_id>/sections/advantages" -H "Api-Key: $BRILA_API_KEY"`.
 2. Ask for the destination store URL and **visually inspect it** (open/screenshot) to read its palette,
    fonts, and component style.
 3. Produce **one self-contained** HTML snippet (inline CSS + vanilla JS, no external calls, uniquely
