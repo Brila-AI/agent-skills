@@ -9,9 +9,10 @@ Business listing URL — Google Maps (`https://maps.app.goo.gl/…`) or Yelp (`h
 may be empty — if so, ask the user for one (it generates only from a Maps/Yelp URL, not a
 name/address): $ARGUMENTS
 
-**Before launching anything, first send the user a short heads-up with an emoji** (plain text, before
-the tool call), e.g. "⏳ Kicking off your Brila site — usually ~30s to a couple of minutes. Hang tight!"
-Never generate silently.
+**The moment the job is accepted** — the returned `generation_id`, or the script's `created` line —
+**send the user a short heads-up with an emoji** (plain text), e.g. "⏳ Kicking off your Brila site —
+usually ~30s to a couple of minutes. Hang tight!" Never leave them waiting in silence, and never
+announce a build you haven't started: if that first call fails instead, handle the failure.
 
 Then generate, preferring the MCP path when available:
 - **If Brila MCP tools are available** (this plugin ships the Brila MCP server), call the
@@ -20,7 +21,9 @@ Then generate, preferring the MCP path when available:
   The server handles auth — no API key for you to manage.
 - **Otherwise**, run the bundled script — `python3 scripts/brila_generate.py "<business_url>"` (fall
   back to `python`, or `py -3` on Windows) — never hand-roll create/poll/export with curl. It reads
-  `BRILA_API_KEY`; if there's no key, ask the user for their Brila API key — don't guess or auto-fill one.
+  `BRILA_API_KEY` (or a file via `--api-key-file`); if there's no key, don't ask the user to paste it
+  and never put it in a command — have them set it up themselves (see the skill's
+  "What you need before running"). Don't guess or auto-fill one.
 
 Either way, hand back the **live published URL** and the **site content as Markdown**.
 

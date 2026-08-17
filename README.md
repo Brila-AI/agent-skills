@@ -9,7 +9,9 @@ end-to-end: give a Google Maps or Yelp business link and get back a **live websi
 edit and manage a site (sections, images, custom domains), or build an embeddable reviews widget —
 all over plain HTTPS. Runs in Claude Code,
 OpenAI Codex, or any agent (see [Install](#install)). Skills follow the
-[Agent Skills](https://agentskills.io/) open standard.
+[Agent Skills](https://agentskills.io/) open standard, and the plugin follows
+[Agent Plugins v1.0.0](https://agent-plugins.org/specification) — a portable `plugin.json` and
+`mcp.json` at the repo root, alongside the client-specific manifests.
 
 > [!NOTE]
 > **Technical Preview**
@@ -38,9 +40,19 @@ codex plugin marketplace add brila-ai/agent-skills
 ```
 
 Then install **brila** from the plugin browser (`/plugins`, or the Plugins section in the Codex app).
-On Codex the skill triggers by intent — just ask (slash commands are Claude Code-only). Codex doesn't
-auto-bundle the MCP server; to use it, add `brila` (`https://mcp.brila.ai/mcp`) to your `config.toml`,
-or just use the bundled script with an API key.
+On Codex the skill triggers by intent — just ask (slash commands are Claude Code-only).
+
+The plugin **bundles the Brila MCP server** here too, so installing it registers `brila`
+(`https://mcp.brila.ai/mcp`) — check with `codex mcp list` and sign in with `codex mcp login brila`
+(Codex discovers the OAuth endpoints on its own). On an older Codex that doesn't read `mcpServers`
+from a plugin manifest, add it yourself:
+
+```
+codex mcp add brila --url https://mcp.brila.ai/mcp
+codex mcp login brila
+```
+
+Either way, the bundled script + an API key remains as a fallback.
 
 ### Any agent via npx
 
@@ -59,8 +71,20 @@ npx skills add brila-ai/agent-skills --skill brila-generate-site -a claude-code
 
 With the bundled **MCP server** (the default install above), the first run signs you in via **OAuth**
 in the browser — nothing to configure. On the **script fallback** (no MCP), authenticate with a
-**Brila API key**: set `BRILA_API_KEY=sk_…`, or just **paste the key into the chat** — the skill picks
-it up and passes it via `--api-key`.
+**Brila API key** that you install yourself, so it never passes through the chat:
+
+```bash
+# either: export it from your shell profile (~/.zshrc, ~/.bashrc)
+export BRILA_API_KEY=sk_…
+
+# or: keep it in a file and point the script at it
+mkdir -p ~/.brila && printf '%s' 'sk_…' > ~/.brila/api_key && chmod 600 ~/.brila/api_key
+# … then run with --api-key-file ~/.brila/api_key
+```
+
+Don't paste the key into the chat and don't put it on a command line: a pasted key is stored in the
+agent's transcript, and a key in a command's arguments is readable by other users via `ps` and kept in
+your shell history. The script has no `--api-key` flag for that reason.
 
 Generating a site needs an [**active Brila subscription**](https://brila.ai/pricing) — over MCP the
 skill can start a checkout and hand you a payment link if you don't have one yet.
@@ -81,7 +105,8 @@ intent):
 - **`/brila:widget <site id or live URL>`** — build a self-contained, embeddable **reviews widget** from
   a generated site's content, styled to match the store it will live on (Shopify / WordPress / Webflow).
 
-Both need an active subscription and your API key. Section editing, image uploads, custom domains, and
+Both need an active subscription (over MCP you sign in with OAuth; only the script fallback uses an API
+key). Section editing, image uploads, custom domains, and
 listing/deleting sites all work by asking in plain language ("change the hero headline", "point
 example.com at my site") — the skill calls the API directly.
 
@@ -90,7 +115,8 @@ site) and `brila-widget` (build the embeddable reviews widget). You don't pick �
 
 ## Configuration
 
-- `BRILA_API_KEY` — your API key (or pass `--api-key`).
+- `BRILA_API_KEY` — your API key. Never passed as a command-line argument; there is no `--api-key` flag.
+- `BRILA_API_KEY_FILE` — path to a file holding the key instead (same as `--api-key-file`).
 - `BRILA_API_BASE` — API base (defaults to `https://api.brila.ai`).
 
 ## Issues
