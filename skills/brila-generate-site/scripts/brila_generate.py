@@ -6,6 +6,10 @@ TLS fingerprint on this API, while curl passes cleanly with identical headers. N
 on PATH (standard on macOS/Linux) plus Python 3. Emits one JSON object per line for progress,
 and a final {"event":"done", ...} (or {"error":...}).
 
+Credentials: the API key comes from $BRILA_API_KEY or --api-key-file, and reaches curl over stdin.
+It is never a command-line argument, so it can't leak into `ps`, shell history, or an agent
+transcript.
+
 Flow against /api/public/v1:
   1. POST /generations {source_url}            -> 202, {id, status:"queue", ...}
   2. GET  /generations/{id}  (poll)            -> {status: queue|processing|ready|failed}
@@ -47,11 +51,23 @@ def _plugin_version(default="0.0.0"):
 USER_AGENT = f"brila-agent/{_plugin_version()}"
 
 
+def curl_auth_config(api_key):
+    """Render the Api-Key header as a curl config, fed to curl on stdin.
+
+    The key must never reach curl's argv: anything there is readable by other users via `ps` for
+    the life of the request. curl's config syntax is one option per line; inside double quotes it
+    honours backslash escapes, so escape those two characters.
+    """
+    escaped = api_key.replace("\\", "\\\\").replace('"', '\\"')
+    return f'header = "Api-Key: {escaped}"\n'
+
+
 def api_request(method, url, api_key, body=None):
     # -w appends "\n<http_code>" after the body so we can split status from payload.
     cmd = [
         "curl", "-sS", "--max-time", "60", "-X", method, url,
-        "-H", f"Api-Key: {api_key}",
+        # Read the Api-Key header from stdin (see curl_auth_config) — keeps the secret out of argv.
+        "-K", "-",
         "-H", "Accept: application/json",
         "-H", f"User-Agent: {USER_AGENT}",
         # Skip the ngrok-free interstitial when testing through a tunnel; harmless otherwise.
@@ -61,7 +77,8 @@ def api_request(method, url, api_key, body=None):
     if body is not None:
         cmd += ["-H", "Content-Type: application/json", "-d", json.dumps(body)]
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=90,
+                                input=curl_auth_config(api_key))
     except (OSError, subprocess.TimeoutExpired) as e:
         return None, str(e)
     if result.returncode != 0:
@@ -75,13 +92,28 @@ def api_request(method, url, api_key, body=None):
         return None, out
 
 
+def resolve_api_key(key_file):
+    """Get the API key from a file or the environment — never from a command-line argument.
+
+    A key in argv leaks into `ps`, shell history, and the transcript of whatever agent ran the
+    command, so the CLI deliberately has no --api-key flag. Raises OSError on an unreadable file.
+    """
+    if key_file:
+        with open(os.path.expanduser(key_file), encoding="utf-8") as f:
+            return f.read().strip()
+    return os.environ.get("BRILA_API_KEY")
+
+
 def error_type(body):
     parsed = safe_json(body)
     return parsed.get("type") if isinstance(parsed, dict) else None
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate a Brila site and export Markdown.")
+    # allow_abbrev=False so that a stale `--api-key <secret>` call can't be silently accepted as an
+    # abbreviation of --api-key-file (which would treat the secret as a path, keeping it in argv).
+    parser = argparse.ArgumentParser(description="Generate a Brila site and export Markdown.",
+                                     allow_abbrev=False)
     parser.add_argument(
         "business_url",
         nargs="?",
@@ -90,18 +122,42 @@ def main():
     # Resume an existing generation (poll + export) instead of creating a new one — use the id from a
     # previous "created" line if a run was interrupted, so you don't start a duplicate paid generation.
     parser.add_argument("--resume", metavar="GENERATION_ID", default=None)
-    parser.add_argument("--api-key", default=os.environ.get("BRILA_API_KEY"))
+    # The key is read from BRILA_API_KEY or a key file only — never a command-line argument.
+    parser.add_argument(
+        "--api-key-file",
+        metavar="PATH",
+        default=os.environ.get("BRILA_API_KEY_FILE"),
+        help="File holding the Brila API key (e.g. ~/.brila/api_key, chmod 600). "
+             "Defaults to $BRILA_API_KEY_FILE; otherwise the key is read from $BRILA_API_KEY.",
+    )
+    # Removed in 0.4.0. Kept only to refuse it with a useful message instead of an opaque
+    # "unrecognized argument", and to tell the caller the key is now in their shell history.
+    parser.add_argument("--api-key", default=None, help=argparse.SUPPRESS)
     parser.add_argument("--base", default=os.environ.get("BRILA_API_BASE", "https://api.brila.ai"))
     parser.add_argument("--poll-interval", type=int, default=10)
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--md-out", default=None)
     args = parser.parse_args()
 
-    if not args.api_key:
-        emit({"error": "MISSING_CREDENTIALS",
-              "message": "Set BRILA_API_KEY or pass --api-key with your Brila API key."})
+    if args.api_key is not None:
+        emit({"error": "API_KEY_ARG_REFUSED",
+              "message": "--api-key was removed: a key on the command line is visible to other "
+                         "users via `ps` and lands in shell history and agent transcripts. Set "
+                         "BRILA_API_KEY instead, or use --api-key-file. Note that the key you just "
+                         "passed is now in your shell history."})
         return 2
-    api_key = args.api_key
+
+    try:
+        api_key = resolve_api_key(args.api_key_file)
+    except OSError as e:
+        emit({"error": "KEY_FILE_UNREADABLE", "message": str(e)})
+        return 2
+    if not api_key:
+        emit({"error": "MISSING_CREDENTIALS",
+              "message": "No Brila API key. Set BRILA_API_KEY in your environment (shell profile "
+                         "or a gitignored .env), or point --api-key-file at a file holding the key. "
+                         "For your own safety the key is never taken as a command-line argument."})
+        return 2
 
     base = args.base.rstrip("/") + "/api/public/v1"
 
