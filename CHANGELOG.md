@@ -2,7 +2,39 @@
 
 All notable changes to the **brila** plugin are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com); versioning: [SemVer](https://semver.org).
-The plugin version lives in `.claude-plugin/plugin.json`.
+The plugin version lives in three manifests that have to agree: `plugin.json`,
+`.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`.
+
+## [0.4.1] — 2026-09-04
+
+Two packaging defects, both present since the plugin gained the file they concern. The skills, the
+commands and the bundled server are unchanged — what changes is that Codex can find the plugin at all,
+and that Claude Code's component inventory stops under-reporting it.
+
+### Fixed
+
+- **Codex found no plugin in the marketplace.** `codex plugin marketplace add brila-ai/agent-skills` —
+  the command this README gives — added the marketplace and then listed nothing in the plugin browser,
+  so the documented install path dead-ended. The entry in `.agents/plugins/marketplace.json` declared a
+  `git-subdir` source with `"path": "."`, and Codex resolves that source only for a real subdirectory:
+  `"."`, `"./"` and `""` all yield an empty listing, while a genuine subdirectory resolves. This plugin
+  lives at the repository root, so the source is now `local` with `"path": "./"`, which resolves
+  relative to the marketplace root and therefore behaves the same for a clone, a fork and a local
+  checkout. Nothing else about the entry changes, and the plugin itself was always fine — only the
+  marketplace index pointed into the void.
+
+- **`claude plugin details brila` reported `MCP servers (0)` while the server was registered and
+  reachable.** The inventory builder reads a file named exactly `.mcp.json` at the plugin root; it does
+  not expand the path string that `"mcpServers": "./mcp.json"` gives it, and an inline object in a
+  client manifest does not reach it either. The runtime loader is a separate code path that does resolve
+  the path, which is why the server always connected — the count alone was wrong. Agent Plugins v1 fixes
+  the name `mcp.json` at the plugin root and allows no alternative path, so renaming is not an option;
+  a second copy of the file would mean two definitions to keep in sync, which is what 0.4.0 set out to
+  end. `.mcp.json` is therefore a **symlink** to `mcp.json`: two names, one definition. Git stores it as
+  mode `120000` and it survives a clone. `claude plugin details` now reports `MCP servers (1)` and
+  registers the server once, not twice. On a checkout without symlink support (`core.symlinks=false`)
+  the link materialises as a small text file, the count falls back to `0`, and the server still
+  connects — the worst case equals the behaviour before this fix.
 
 ## [0.4.0] — 2026-08-17
 
