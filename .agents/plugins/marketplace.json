@@ -7,10 +7,8 @@
     {
       "name": "brila",
       "source": {
-        "source": "git-subdir",
-        "url": "brila-ai/agent-skills",
-        "path": ".",
-        "ref": "main"
+        "source": "local",
+        "path": "./"
       },
       "policy": {
         "installation": "AVAILABLE",
