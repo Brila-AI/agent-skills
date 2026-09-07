@@ -23,6 +23,13 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 SCRIPT = REPO / "skills" / "brila-generate-site" / "scripts" / "brila_generate.py"
 
+# Our own output carries an em dash, and on Windows stdout is a pipe in CI, which Python encodes
+# with the ANSI code page — the first real run turned that dash into a replacement character in the
+# job log. Force UTF-8 so the diagnostics stay readable on every runner; this suite exists to catch
+# exactly this class of defect and is not exempt from it.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 failures = []
 
 
