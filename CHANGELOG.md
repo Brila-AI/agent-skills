@@ -5,6 +5,45 @@ Format: [Keep a Changelog](https://keepachangelog.com); versioning: [SemVer](htt
 The plugin version lives in three manifests that have to agree: `plugin.json`,
 `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`.
 
+## [0.4.2] — 2026-09-07
+
+Windows fixes. The script and the skill docs assumed a UTF-8 locale, a `python3` on PATH and the
+plugin directory as the working directory — three assumptions that hold on macOS and Linux and none
+of which hold on Windows. The API, the flow and the MCP path are unchanged.
+
+### Fixed
+
+- **Generation crashed or produced mojibake on Windows.** `brila_generate.py` read `curl`'s output
+  with `subprocess.run(..., text=True)` and no explicit encoding, so Python decoded the response with
+  the platform's locale encoding. That is UTF-8 on macOS and Linux, but the ANSI code page on Windows.
+  On a Western install (cp1252) the bytes `0x81` and `0x8f` are undefined, so any Cyrillic listing —
+  and much else — died with `UnicodeDecodeError: 'charmap' codec can't decode byte 0x81`; on a Russian
+  install (cp1251) nothing crashed and the exported Markdown was silently mojibake. The response is now
+  decoded as UTF-8 explicitly, independent of the system code page, and a single undecodable byte is
+  replaced instead of ending a run the user has already paid for.
+
+- **The exported Markdown no longer matches the site byte for byte on Windows.** The file was opened in
+  text mode, which rewrites every LF as CRLF. It is now written with `newline="\n"`.
+
+- **A missing `curl` reported an unusable error.** Every request goes through `curl`, and its absence
+  surfaced as `{"error":"CREATE_FAILED","http_status":null,"body":"[Errno 2] No such file or
+  directory: 'curl'"}` — an HTTP-shaped failure for a missing dependency. The script now checks once,
+  before any request, and reports `CURL_NOT_FOUND` with what to install.
+
+- **The documented command could not run on Windows.** The skill and the `/brila:generate-site` command
+  both said `python3 scripts/brila_generate.py`. Two problems: python.org's installer creates no
+  `python3` (the Microsoft Store stub of that name exits without running anything), and the relative
+  path resolves against the agent's working directory, which is the user's project rather than the
+  plugin. Both now give an absolute, quoted `$CLAUDE_PLUGIN_ROOT` path — quoted because Windows profile
+  directories routinely contain a space — and name `py -3` as the Windows interpreter.
+
+- **The reviews-widget serialization one-liner failed on Windows.** `skills/brila-widget/SKILL.md`
+  built the widget's data block with `json.load(open(path))` and `print(..., ensure_ascii=False)`.
+  Review text is rarely pure ASCII, so the read raised `UnicodeDecodeError` under the ANSI code page and
+  the write raised `UnicodeEncodeError` on a `cp866` console. The one-liner now reads with
+  `encoding="utf-8"` and writes UTF-8 bytes straight to `stdout.buffer`. The `<` → `\u003c` escaping
+  that keeps a review containing `</script>` from breaking out of the block is unchanged.
+
 ## [0.4.1] — 2026-09-04
 
 Two packaging defects, both present since the plugin gained the file they concern. The skills, the

@@ -3,8 +3,10 @@
 
 HTTP goes through `curl` (a subprocess), not Python's urllib: Cloudflare resets Python's
 TLS fingerprint on this API, while curl passes cleanly with identical headers. Needs `curl`
-on PATH (standard on macOS/Linux) plus Python 3. Emits one JSON object per line for progress,
-and a final {"event":"done", ...} (or {"error":...}).
+on PATH (standard on macOS/Linux, and on Windows 10 1803+) plus Python 3 — on Windows call the
+interpreter `py -3` or `python`, since python.org's installer creates no `python3`. All I/O is
+UTF-8 regardless of the platform locale. Emits one JSON object per line for progress, and a final
+{"event":"done", ...} (or {"error":...}).
 
 Credentials: the API key comes from $BRILA_API_KEY or --api-key-file, and reaches curl over stdin.
 It is never a command-line argument, so it can't leak into `ps`, shell history, or an agent
@@ -20,6 +22,7 @@ Flow against /api/public/v1:
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -77,7 +80,13 @@ def api_request(method, url, api_key, body=None):
     if body is not None:
         cmd += ["-H", "Content-Type: application/json", "-d", json.dumps(body)]
     try:
+        # Decode the response as UTF-8 explicitly. `text=True` alone decodes with the platform's
+        # locale encoding — UTF-8 on macOS/Linux, but the ANSI code page on Windows (cp1252, cp1251),
+        # where the API's UTF-8 body either raises UnicodeDecodeError or turns into mojibake. A
+        # business name with an accent or Cyrillic is enough to trigger it. `errors="replace"` keeps
+        # a single bad byte from killing a run the user has already paid for.
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=90,
+                                encoding="utf-8", errors="replace",
                                 input=curl_auth_config(api_key))
     except (OSError, subprocess.TimeoutExpired) as e:
         return None, str(e)
@@ -159,6 +168,16 @@ def main():
                          "For your own safety the key is never taken as a command-line argument."})
         return 2
 
+    # Every request goes through curl, so check it once here — otherwise each call fails as an
+    # opaque "[Errno 2] No such file or directory: 'curl'" inside an HTTP error. Windows ships
+    # curl.exe from 10 1803 on; older boxes and stripped images need it installed.
+    if shutil.which("curl") is None:
+        emit({"error": "CURL_NOT_FOUND",
+              "message": "curl was not found on PATH, and every request goes through it. macOS, "
+                         "Linux, and Windows 10 1803+ ship curl; Git Bash provides one on Windows "
+                         "too. Install curl (or open a shell that has it) and re-run."})
+        return 2
+
     base = args.base.rstrip("/") + "/api/public/v1"
 
     # 1. Start the generation — or resume an existing one (poll + export, no new job).
@@ -221,7 +240,9 @@ def main():
     # Claude Code to the project root) when present, otherwise the current working directory.
     out_dir = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
     md_path = args.md_out or os.path.join(out_dir, f"{site_name}.md")
-    with open(md_path, "w", encoding="utf-8") as f:
+    # newline="\n" writes the export exactly as the API sent it; Windows text mode would otherwise
+    # rewrite every LF as CRLF and the file would no longer match the site's content byte for byte.
+    with open(md_path, "w", encoding="utf-8", newline="\n") as f:
         f.write(md)
 
     published_url = site.get("site_url") or f"https://{site_name}.brila.ai"

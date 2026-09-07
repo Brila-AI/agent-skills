@@ -99,11 +99,17 @@ whole async `create → poll → export` loop reliably in one process. Do NOT ca
 or poll `GET /v1/generations/{id}` yourself — run:
 
 ```bash
-python3 scripts/brila_generate.py "<business_url>"
+python3 "$CLAUDE_PLUGIN_ROOT/skills/brila-generate-site/scripts/brila_generate.py" "<business_url>"
 ```
 
-Call the interpreter as `python3`, falling back to `python` (or `py -3` on Windows) if `python3`
-isn't on PATH. Requires `curl` and Python 3 (see the README for dependencies).
+**Give the script an absolute path, in quotes.** Your working directory is the user's project, not
+this plugin, so `scripts/brila_generate.py` resolves to nothing. `$CLAUDE_PLUGIN_ROOT` is set for
+you; if it is empty, use this skill directory's absolute path. The quotes matter on Windows, where
+the plugin lives under a user profile whose name often contains a space.
+
+Call the interpreter as `python3`, falling back to `python` — **on Windows use `py -3`**, because
+python.org's installer creates no `python3` and the Microsoft Store stub of that name exits without
+running the script. Requires `curl` and Python 3 (see the README for dependencies).
 
 Useful flags: `--api-key-file <path>` (a file holding the key, when it isn't in `BRILA_API_KEY` —
 there is deliberately no `--api-key`), `--md-out <path.md>` (where to write
@@ -123,7 +129,8 @@ The script prints **one JSON object per line** so you can follow progress:
 
 **If a run is interrupted (timeout / killed) while a job is already `created`, DO NOT re-run the
 generation** — that starts a *duplicate paid* job. Resume the existing one with the `id` from the
-`created` line: `python3 scripts/brila_generate.py --resume <generation_id>` (poll + export only).
+`created` line: `python3 "$CLAUDE_PLUGIN_ROOT/skills/brila-generate-site/scripts/brila_generate.py"
+--resume <generation_id>` (poll + export only).
 Same if a fresh create returns `409 GENERATION_IN_PROGRESS` — resume that job's id. (The MCP
 `generate_site` tool auto-resumes an in-progress generation, so this caveat is script-only.)
 
@@ -165,6 +172,8 @@ same `type` / `message` the script surfaces in its `{"error":...}` line. Common 
   — don't ask them to paste the key.
 - `API_KEY_ARG_REFUSED` — something passed `--api-key`; re-run with the key in the env or a key file,
   and let the user know that key is now in their shell history.
+- `CURL_NOT_FOUND` — the script routes every request through `curl` and it isn't on PATH: ask the user
+  to install it, or on Windows to run from Git Bash (which ships one).
 - `403 SUBSCRIPTION_REQUIRED` — the API is a subscriber feature; an active Brila subscription is required.
 - `403 SITE_LIMIT_REACHED` — all site slots on the plan are used for this period; free a slot or upgrade.
 - `422 INSUFFICIENT_REVIEWS` — the business has too few reviews to generate a quality site.

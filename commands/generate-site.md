@@ -19,8 +19,11 @@ Then generate, preferring the MCP path when available:
   **`generate_site`** tool with the URL — it returns a `generation_id`; then poll `get_generation`
   until `ready` (show the user the returned `stage` between polls) and call `get_site` / `export_site`.
   The server handles auth — no API key for you to manage.
-- **Otherwise**, run the bundled script — `python3 scripts/brila_generate.py "<business_url>"` (fall
-  back to `python`, or `py -3` on Windows) — never hand-roll create/poll/export with curl. It reads
+- **Otherwise**, run the bundled script —
+  `python3 "$CLAUDE_PLUGIN_ROOT/skills/brila-generate-site/scripts/brila_generate.py" "<business_url>"`
+  — never hand-roll create/poll/export with curl. Keep the path absolute and quoted (your cwd is the
+  user's project, and Windows profile paths contain spaces), and fall back to `python`, or `py -3` on
+  Windows, where python.org's installer creates no `python3`. It reads
   `BRILA_API_KEY` (or a file via `--api-key-file`); if there's no key, don't ask the user to paste it
   and never put it in a command — have them set it up themselves (see the skill's
   "What you need before running"). Don't guess or auto-fill one.
