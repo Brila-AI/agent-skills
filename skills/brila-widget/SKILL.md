@@ -99,11 +99,17 @@ the data once, with a tool, and let the browser do the escaping:**
 1. **Emit the data block with `json.dumps`, never by hand.** Save the fetched section to a file, then
    generate the literal you paste into the snippet:
    ```bash
-   python3 -c 'import json,sys; print(json.dumps(json.load(open(sys.argv[1])), ensure_ascii=False).replace("<", "\\u003c"))' advantages.json
+   python3 -c 'import json,sys; sys.stdout.buffer.write(json.dumps(json.load(open(sys.argv[1], encoding="utf-8")), ensure_ascii=False).replace("<", "\\u003c").encode("utf-8") + b"\n")' advantages.json
    ```
    The `<` → `\u003c` step is what stops a review containing `</script>` from closing the block
    early; `json.dumps` handles quotes, backslashes, and newlines. Paste the output as one `const` in
    the widget's JS (and reuse the same payload for the JSON-LD in step 4).
+
+   Both UTF-8 arguments are load-bearing on Windows, where the default is the ANSI code page: reviews
+   carry accents, dashes, and non-Latin scripts, so `open()` without `encoding` raises
+   `UnicodeDecodeError`, and a plain `print()` raises `UnicodeEncodeError` on a `cp866` console. Call
+   the interpreter `py -3` there — python.org's installer creates no `python3`.
+
 2. **Render every string through `textContent`,** building nodes in JS — `el.textContent = r.text`.
    The browser escapes it for you, so there is no escape table to get wrong.
 3. **Never** use `innerHTML`, `document.write`, an inline handler (`onclick="…"`), a `javascript:`/`data:`

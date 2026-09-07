@@ -92,8 +92,13 @@ skill can start a checkout and hand you a payment link if you don't have one yet
 ## Requirements
 
 - **`curl`** and **Python 3** on PATH (generation runs through the bundled `brila_generate.py`).
+  Windows ships `curl.exe` from Windows 10 1803 on, and Git Bash carries one too.
 - A **POSIX shell** — on Windows use **Git Bash** / WSL. The script is invoked as `python3`, falling
-  back to `python` or `py -3`.
+  back to `python`; **on Windows use `py -3`** — python.org's installer creates no `python3`, and the
+  Microsoft Store stub of that name exits without running anything.
+
+The script reads and writes UTF-8 everywhere, independent of the system code page, so accented and
+non-Latin business names survive on Windows.
 
 ## Commands
 
